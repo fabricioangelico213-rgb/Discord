@@ -49,9 +49,6 @@ const server = http.createServer(async (req, res) => {
       if (!senha || !email) {
         return json(res, 400, { ok: false, erro: "senha e e-mail são obrigatórios." });
       }
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        return json(res, 400, { ok: false, erro: "E-mail inválido." });
-      }
 
       await resend.emails.send({
         from: process.env.MAIL_FROM || "onboarding@resend.dev",
